@@ -3,6 +3,7 @@ var router = express.Router();
 var xl = require("excel4node");
 const createFile = require("../services/createFile");
 const encode = require("nodejs-base64-encode");
+const { response } = require("../app");
 
 router.post("/plantillaInventario", function (req, res, next) {
   let jsonDatos = JSON.parse(encode.decode(req.body.datos, "base64"));
@@ -93,6 +94,10 @@ router.post("/generarReporte", function (req, res, next) {
   ws = createFile(ws, jsonDatos, keys, style);
 
   wb.write(`Reporte_${origen}.xlsx`, res);
+});
+
+router.post("/test", function (req, res, next) {
+  res.send("Ok");
 });
 
 module.exports = router;

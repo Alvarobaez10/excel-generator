@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 3002
 
-CMD [ "node", "app.js" ]
+CMD [ "node", "./bin/www" ]
 

@@ -1,10 +1,25 @@
-module.exports = function createFile(sheet, jsonDatos, keys, style) {
+module.exports = function createFile(
+  sheet,
+  jsonDatos,
+  keys,
+  style,
+  header,
+  styleHeader
+) {
   let row = 1;
+  if (header) {
+    sheet
+      .cell(row, 1, row, keys.length, true)
+      .string(header.toUpperCase())
+      .style(styleHeader);
+    row++;
+  }
+
   for (let i = 0; i < keys.length; i++) {
     sheet
       .cell(row, i + 1)
       .string(keys[i].toUpperCase().replace(/_/g, " "))
-      .style(style);
+      .style(styleHeader);
   }
 
   for (let item of jsonDatos) {

@@ -75,15 +75,34 @@ router.post("/plantillaInventario", function (req, res, next) {
 
 router.post("/generarReporte", function (req, res, next) {
   let origen = req.body.origen;
+  let header = req.body.title;
   let jsonDatos = JSON.parse(encode.decode(req.body.data, "base64"));
 
   var wb = new xl.Workbook({
     author: "HyG consultores.", // Name for use in features such as comments
   });
-  var style = wb.createStyle({
+  let style = wb.createStyle({
     font: {
       color: "#000000",
       size: 12,
+    },
+  });
+
+  let styleHeader = wb.createStyle({
+    alignment: {
+      horizontal: "center",
+      vertical: "center",
+      wrapText: false,
+    },
+    font: {
+      // §18.8.22
+      bold: true,
+      color: "#ffffff",
+    },
+    fill: {
+      type: "pattern", // the only one implemented so far.
+      patternType: "solid",
+      fgColor: "#258b20",
     },
   });
 
@@ -91,7 +110,7 @@ router.post("/generarReporte", function (req, res, next) {
 
   var ws = wb.addWorksheet("reporte");
 
-  ws = createFile(ws, jsonDatos, keys, style);
+  ws = createFile(ws, jsonDatos, keys, style, header, styleHeader);
 
   wb.write(`Reporte_${origen}.xlsx`, res);
 });

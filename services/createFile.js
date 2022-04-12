@@ -26,7 +26,16 @@ module.exports = function createFile(
     row++;
     for (let j = 0; j < keys.length; j++) {
       let valor = item[keys[j]] === null ? "" : item[keys[j]];
-      sheet.cell(row, j + 1).string(valor);
+      if (typeof valor === "number") {
+        sheet.cell(row, j + 1).number(valor);
+      } else if (typeof valor === "object" && valor instanceof Date) {
+        let dia = valor.getDate();
+        let mes = valor.getMonth() + 1;
+        let anio = valor.getFullYear();
+        sheet.cell(row, j + 1).string(`${dia}/${mes}/${anio}`);
+      } else {
+        sheet.cell(row, j + 1).string(valor.toString());
+      }
     }
   }
   return sheet;

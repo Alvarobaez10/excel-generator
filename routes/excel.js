@@ -3,23 +3,13 @@ var router = express.Router();
 var xl = require("excel4node");
 const createFile = require("../services/createFile");
 const encode = require("nodejs-base64-encode");
-const { response } = require("../app");
 
 router.post("/plantillaInventario", function (req, res, next) {
-  let jsonDatos = JSON.parse(encode.decode(req.body.datos, "base64"));
-  let titulo = encode.decode(req.body.titulo, "base64");
+  let jsonDatos = JSON.parse(encode.decode(req.body.datos, "base64")); // jsonDatos es un array de objetos con la estructura para la generación de la plantilla
+  let titulo = encode.decode(req.body.titulo, "base64"); //titulo de la plantilla
+  let styleHeader = {}; // estilo de la cabecera - opcional
+
   let datos = jsonDatos.data;
-
-  let opcionesDropdown = [jsonDatos.opciones[0].dato];
-
-  let dropdown = {
-    type: "list",
-    allowBlank: false,
-    prompt: "Seleccione",
-    error: "Opción no válida",
-    showDropDown: true,
-    formulas: opcionesDropdown,
-  };
 
   var wb = new xl.Workbook({
     workbookView: {
@@ -27,6 +17,13 @@ router.post("/plantillaInventario", function (req, res, next) {
     },
     author: "HyG consultores.", // Name for use in features such as comments
   });
+
+  if (req.body.styleHeader) {
+    styleHeader = wb.createStyle(
+      JSON.parse(encode.decode(req.body.data, "base64"))
+    );
+  }
+
   var options = {
     sheetProtection: {
       deleteColumns: false,
@@ -54,8 +51,20 @@ router.post("/plantillaInventario", function (req, res, next) {
     ws = wb.addWorksheet("Plantilla");
     ws2 = wb.addWorksheet("Ejemplo", options);
 
-    dropdown["sqref"] = "A2:A100";
-    ws.addDataValidation(dropdown);
+    for (let i = 0; i < jsonDatos.opciones.length; i++) {
+      let opcionesDropdown = [jsonDatos.opciones[i].dato];
+      let dropdown = {
+        type: "list",
+        allowBlank: false,
+        prompt: "Seleccione",
+        error: "Opción no válida",
+        showDropDown: true,
+        formulas: opcionesDropdown,
+      };
+
+      dropdown["sqref"] = jsonDatos.opciones[i].rango;
+      ws.addDataValidation(dropdown);
+    }
 
     for (let i = 0; i < keys.length; i++) {
       ws.cell(1, i + 1)
@@ -68,7 +77,7 @@ router.post("/plantillaInventario", function (req, res, next) {
     ws2.addDataValidation(dropdown);
   }
 
-  ws2 = createFile(ws2, datos, keys, style);
+  ws2 = createFile(ws2, datos, keys, style, "", styleHeader);
 
   wb.write("Plantilla_inventario.xlsx", res);
 });
@@ -77,7 +86,7 @@ router.post("/generarReporte", function (req, res, next) {
   let origen = req.body.origen;
   let header = req.body.title;
   let jsonDatos = JSON.parse(encode.decode(req.body.data, "base64"));
-
+  let styleHeader = {};
   var wb = new xl.Workbook({
     author: "HyG consultores.", // Name for use in features such as comments
   });
@@ -88,23 +97,11 @@ router.post("/generarReporte", function (req, res, next) {
     },
   });
 
-  let styleHeader = wb.createStyle({
-    alignment: {
-      horizontal: "center",
-      vertical: "center",
-      wrapText: false,
-    },
-    font: {
-      // §18.8.22
-      bold: true,
-      color: "#ffffff",
-    },
-    fill: {
-      type: "pattern", // the only one implemented so far.
-      patternType: "solid",
-      fgColor: "#258b20",
-    },
-  });
+  if (req.body.styleHeader) {
+    styleHeader = wb.createStyle(
+      JSON.parse(encode.decode(req.body.styleHeader, "base64"))
+    );
+  }
 
   let keys = Object.keys(jsonDatos[0]);
 
